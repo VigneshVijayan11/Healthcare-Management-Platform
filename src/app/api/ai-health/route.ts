@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 const SYSTEM_PROMPT = `You are a helpful AI Health Assistant for a hospital. 
 When a patient describes symptoms, respond in this structured format:
 
@@ -27,12 +25,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
 
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-openai-api-key') {
+    const apiKey = process.env.OPENAI_API_KEY
+
+    // Check for missing/placeholder key BEFORE creating the OpenAI client
+    if (!apiKey || apiKey === 'your-openai-api-key') {
       // Fallback mock response if no API key is configured
       return NextResponse.json({
         reply: `I understand you're experiencing: "${message}"\n\n🔍 **Possible Causes:**\n- Common cold or viral infection\n- Fatigue or dehydration\n- Seasonal allergies\n\n🛡️ **General Precautions:**\n- Rest and stay hydrated\n- Take over-the-counter medication if needed\n- Monitor your temperature\n- Avoid strenuous activity\n\n🏥 **When to Consult a Doctor:**\n- If symptoms persist for more than 3 days\n- If you have a fever above 103°F (39.4°C)\n- If you experience difficulty breathing\n- If symptoms worsen rapidly\n\n⚠️ Remember, this is general information only and NOT a substitute for professional medical advice. Please consult a licensed physician for proper diagnosis and treatment.`
       })
     }
+
+    // Only create the client once we know a real key exists
+    const openai = new OpenAI({ apiKey })
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',

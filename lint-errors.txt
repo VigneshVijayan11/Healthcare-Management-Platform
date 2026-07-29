@@ -1,0 +1,180 @@
+
+> hms@0.1.0 lint
+> eslint
+
+
+/home/vigneshv/hospital management /hms/src/app/admin/analytics/page.tsx
+  45:36  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  58:6   warning  React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/vigneshv/hospital management /hms/src/app/admin/doctors/page.tsx
+   8:10   warning  'Label' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  11:42   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  26:21   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/vigneshv/hospital management /hms/src/app/admin/doctors/page.tsx:26:21
+  24 |   }
+  25 |
+> 26 |   useEffect(() => { fetchDoctors() }, [])
+     |                     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |
+  28 |   const filtered = doctors.filter(d =>
+  29 |     (d.users?.full_name || '').toLowerCase().includes(search.toLowerCase()) ||  react-hooks/set-state-in-effect
+  26:39   warning  React Hook useEffect has a missing dependency: 'fetchDoctors'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+  47:93   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react/no-unescaped-entities
+  47:100  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react/no-unescaped-entities
+
+/home/vigneshv/hospital management /hms/src/app/admin/page.tsx
+   10:64  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   33:68  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   52:6   warning  React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  102:76  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  104:44  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/app/admin/patients/page.tsx
+  10:44  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  25:6   warning  React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/vigneshv/hospital management /hms/src/app/api/ai-health/route.ts
+  52:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/app/api/debug-supabase/route.ts
+  35:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/app/doctor/appointments/page.tsx
+   7:29  warning  'CardHeader' is defined but never used    @typescript-eslint/no-unused-vars
+   7:41  warning  'CardTitle' is defined but never used     @typescript-eslint/no-unused-vars
+  15:13  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/app/doctor/page.tsx
+  42:29  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/vigneshv/hospital management /hms/src/app/doctor/prescriptions/new/page.tsx
+   22:50  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  104:75  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  104:94  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/home/vigneshv/hospital management /hms/src/app/doctor/prescriptions/page.tsx
+  13:54  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  15:68  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  21:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/vigneshv/hospital management /hms/src/app/doctor/prescriptions/page.tsx:21:5
+  19 |
+  20 |   useEffect(() => {
+> 21 |     setMounted(true)
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  22 |     const supabase = supabaseRef.current
+  23 |
+  24 |     const fetchPrescriptions = async () => {  react-hooks/set-state-in-effect
+  63:52  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react/no-unescaped-entities
+  63:71  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react/no-unescaped-entities
+
+/home/vigneshv/hospital management /hms/src/app/login/page.tsx
+  16:59   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:43   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:32   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:65   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:100  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:17   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/app/patient/appointments/page.tsx
+   13:26  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   33:26  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   36:6   warning  React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  100:36  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  100:94  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/app/patient/page.tsx
+   13:42   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   14:50   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   15:68   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   16:66   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   17:54   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   18:68   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   71:6    warning  React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   93:50   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                              react/no-unescaped-entities
+  141:80   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  142:111  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  163:78   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/app/patient/records/page.tsx
+   12:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   13:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   14:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   81:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:69  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/app/receptionist/page.tsx
+    3:21   warning  'useRef' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+   12:60   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   15:64   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   42:6    warning  React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  144:107  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  144:117  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  152:42   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                              react/no-unescaped-entities
+  159:72   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  161:56   error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+
+/home/vigneshv/hospital management /hms/src/components/layout/AppShell.tsx
+  10:16  warning  'ClipboardList' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/vigneshv/hospital management /hms/src/components/shared/PrescriptionPDF.tsx
+    4:67  warning  'BlobProvider' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   32:65  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+   34:20  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+   95:47  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react/no-unescaped-entities
+  106:75  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  110:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/vigneshv/hospital management /hms/src/components/shared/PrescriptionPDF.tsx:110:5
+  108 |
+  109 |   useEffect(() => {
+> 110 |     setMounted(true)
+      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  111 |   }, [])
+  112 |
+  113 |   if (!mounted) {  react-hooks/set-state-in-effect
+  121:20  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  187:90  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react/no-unescaped-entities
+
+/home/vigneshv/hospital management /hms/src/hooks/useAuth.ts
+   7:36  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+   8:42  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  37:6   warning  React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/vigneshv/hospital management /hms/src/utils/supabase/middleware.ts
+  15:9   warning  'supabase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  24:48  warning  'options' is defined but never used            @typescript-eslint/no-unused-vars
+
+/home/vigneshv/hospital management /hms/src/utils/supabase/proxy.ts
+  18:48  warning  'options' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/vigneshv/hospital management /hms/test-db.js
+  1:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/home/vigneshv/hospital management /hms/test-signup.js
+  1:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 84 problems (67 errors, 17 warnings)
+
