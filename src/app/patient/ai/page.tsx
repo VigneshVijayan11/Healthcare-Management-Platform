@@ -31,7 +31,7 @@ export default function AIHealthAssistant() {
         body: JSON.stringify({ message: userMessage }),
       })
       const data = await res.json()
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
+      setMessages(prev => [...prev, { role: 'assistant', content: data.reply || data.error || 'Sorry, I encountered an error. Please try again.' }])
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again later.' }])
     }

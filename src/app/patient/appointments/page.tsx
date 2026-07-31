@@ -7,31 +7,59 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-type Doctor = {
+type DoctorOption = {
   id: string
   specialization: string
-  availability_schedule: any
-  users: { full_name: string }
-  departments: { name: string }
+  full_name: string
+  dept_name: string
 }
 
 export default function BookAppointment() {
-  const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [doctors, setDoctors] = useState<DoctorOption[]>([])
   const [selectedDoctor, setSelectedDoctor] = useState('')
   const [date, setDate] = useState('')
   const [timeSlot, setTimeSlot] = useState('')
   const [loading, setLoading] = useState(false)
+  const [doctorsLoading, setDoctorsLoading] = useState(true)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
     const fetchDoctors = async () => {
-      const { data } = await supabase
+      setDoctorsLoading(true)
+
+      // Primary: join doctors ↔ users
+      const { data: doctorRows, error: err } = await supabase
         .from('doctors')
-        .select('id, specialization, availability_schedule, users ( full_name ), departments ( name )')
-      setDoctors(data as any || [])
+        .select('id, specialization, users ( full_name ), departments ( name )')
+
+      if (!err && doctorRows && doctorRows.length > 0) {
+        setDoctors(doctorRows.map((d: any) => ({
+          id: d.id,
+          specialization: d.specialization || '',
+          full_name: d.users?.full_name || 'Unknown',
+          dept_name: d.departments?.name || 'General',
+        })))
+        setDoctorsLoading(false)
+        return
+      }
+
+      // Fallback: query users table directly for all doctors
+      const { data: userRows } = await supabase
+        .from('users')
+        .select('id, full_name')
+        .eq('role', 'doctor')
+
+      setDoctors((userRows || []).map((u: any) => ({
+        id: u.id,
+        specialization: '',
+        full_name: u.full_name || 'Unknown',
+        dept_name: 'General',
+      })))
+      setDoctorsLoading(false)
     }
+
     fetchDoctors()
   }, [])
 
@@ -42,12 +70,16 @@ export default function BookAppointment() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Check patient ID
-    const { data: patient } = await supabase.from('patients').select('id').eq('id', user.id).single()
+    // Check patient ID — try to create one if missing
+    let { data: patient } = await supabase.from('patients').select('id').eq('id', user.id).single()
     if (!patient) {
-      setError('Your patient profile is not complete. Please contact reception.')
-      setLoading(false)
-      return
+      // Auto-create patient row if trigger missed it
+      const { error: createErr } = await supabase.from('patients').insert({ id: user.id, dob: '1900-01-01' })
+      if (createErr) {
+        setError('Your patient profile could not be found or created. Please contact reception.')
+        setLoading(false)
+        return
+      }
     }
 
     // Check for double booking
@@ -89,18 +121,26 @@ export default function BookAppointment() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Doctor</Label>
-            <select
-              className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-              value={selectedDoctor}
-              onChange={e => setSelectedDoctor(e.target.value)}
-            >
-              <option value="">-- Select a Doctor --</option>
-              {doctors.map(d => (
-                <option key={d.id} value={d.id}>
-                  Dr. {(d.users as any)?.full_name} — {d.specialization} ({(d.departments as any)?.name ?? 'General'})
-                </option>
-              ))}
-            </select>
+            {doctorsLoading ? (
+              <p className="text-sm text-slate-500">Loading doctors...</p>
+            ) : doctors.length === 0 ? (
+              <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+                No doctors are currently available. Please contact reception to book an appointment.
+              </p>
+            ) : (
+              <select
+                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+                value={selectedDoctor}
+                onChange={e => setSelectedDoctor(e.target.value)}
+              >
+                <option value="">-- Select a Doctor --</option>
+                {doctors.map(d => (
+                  <option key={d.id} value={d.id}>
+                    Dr. {d.full_name}{d.specialization ? ` — ${d.specialization}` : ''} ({d.dept_name})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -130,10 +170,10 @@ export default function BookAppointment() {
             </div>
           )}
 
-          <Button 
-            className="w-full" 
-            onClick={handleBook} 
-            disabled={!selectedDoctor || !date || !timeSlot || loading}
+          <Button
+            className="w-full"
+            onClick={handleBook}
+            disabled={!selectedDoctor || !date || !timeSlot || loading || doctorsLoading}
           >
             {loading ? 'Booking...' : 'Book Appointment'}
           </Button>

@@ -24,7 +24,7 @@ export default function PatientRecords() {
 
       const [{ data: presc }, { data: appts }] = await Promise.all([
         supabase.from('prescriptions')
-          .select('*, doctors ( users ( full_name ) )')
+          .select('*, doctors ( users ( full_name ) ), patients ( users ( full_name ) )')
           .eq('patient_id', user.id)
           .order('created_at', { ascending: false }),
         supabase.from('appointments')

@@ -13,15 +13,27 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      // Count doctors from doctors table; fall back to users table
+      const { count: doctorsCountRaw } = await supabase.from('doctors').select('*', { count: 'exact', head: true })
+      let doctorsCount = doctorsCountRaw ?? 0
+      if (!doctorsCount) {
+        const { count } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'doctor')
+        doctorsCount = count ?? 0
+      }
+
+      // Count patients from patients table; fall back to users table
+      const { count: patientsCountRaw } = await supabase.from('patients').select('*', { count: 'exact', head: true })
+      let patientsCount = patientsCountRaw ?? 0
+      if (!patientsCount) {
+        const { count } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'patient')
+        patientsCount = count ?? 0
+      }
+
       const [
-        { count: doctorsCount },
-        { count: patientsCount },
         { count: appointmentsCount },
         { data: appts },
         { data: billing },
       ] = await Promise.all([
-        supabase.from('doctors').select('*', { count: 'exact', head: true }),
-        supabase.from('patients').select('*', { count: 'exact', head: true }),
         supabase.from('appointments').select('*', { count: 'exact', head: true }),
         supabase.from('appointments')
           .select('*, patients ( users ( full_name ) ), doctors ( users ( full_name ) )')

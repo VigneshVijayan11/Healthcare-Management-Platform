@@ -29,7 +29,7 @@ function NewPrescriptionForm() {
     const fetchPatient = async () => {
       const { data, error: fetchError } = await supabase
         .from('appointments')
-        .select('patient_id, date, patients ( users ( full_name ), dob, blood_group, gender )')
+        .select('patient_id, date, patients ( users ( full_name ) )')
         .eq('id', appointmentId)
         .single()
       if (!fetchError) setPatientInfo(data)

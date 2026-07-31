@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, BlobProvider } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer'
+import { createClient } from '@/utils/supabase/client'
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontFamily: 'Helvetica' },
@@ -29,10 +30,12 @@ const styles = StyleSheet.create({
   signLine: { borderTop: '1 solid #0f172a', width: 150, paddingTop: 4, fontSize: 10, textAlign: 'center' },
 })
 
-function PrescriptionDocument({ prescription }: { prescription: any }) {
-  const patient = prescription.patients?.users?.full_name || 'N/A'
+function PrescriptionDocument({ prescription, patientName }: { prescription: any; patientName: string }) {
+  const doctorName = prescription.doctors?.users?.full_name ? `Dr. ${prescription.doctors.users.full_name}` : 'Dr. Attending Physician'
   const medicines: any[] = prescription.medicines || []
-  const date = new Date(prescription.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+  const date = prescription.created_at
+    ? new Date(prescription.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+    : new Date().toLocaleDateString()
 
   return (
     <Document>
@@ -44,7 +47,7 @@ function PrescriptionDocument({ prescription }: { prescription: any }) {
             <Text style={styles.hospitalSub}>Tel: +91 98765 43210 | care@hmspro.com</Text>
           </View>
           <View>
-            <Text style={styles.doctorName}>Dr. Attending Physician</Text>
+            <Text style={styles.doctorName}>{doctorName}</Text>
             <Text style={styles.doctorSub}>MBBS, MD | Reg. No: 12345</Text>
             <Text style={styles.doctorSub}>General Medicine</Text>
           </View>
@@ -54,7 +57,7 @@ function PrescriptionDocument({ prescription }: { prescription: any }) {
           <Text style={styles.sectionTitle}>Patient Information</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Patient Name:</Text>
-            <Text style={styles.value}>{patient}</Text>
+            <Text style={styles.value}>{patientName}</Text>
             <Text style={styles.label}>Date:</Text>
             <Text style={styles.value}>{date}</Text>
           </View>
@@ -76,10 +79,10 @@ function PrescriptionDocument({ prescription }: { prescription: any }) {
           </View>
           {medicines.map((med, i) => (
             <View key={i} style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.col1]}>{med.name}</Text>
-              <Text style={[styles.tableCell, styles.col2]}>{med.dosage}</Text>
-              <Text style={[styles.tableCell, styles.col3]}>{med.frequency}</Text>
-              <Text style={[styles.tableCell, styles.col4]}>{med.duration}</Text>
+              <Text style={[styles.tableCell, styles.col1]}>{med.name || '—'}</Text>
+              <Text style={[styles.tableCell, styles.col2]}>{med.dosage || '—'}</Text>
+              <Text style={[styles.tableCell, styles.col3]}>{med.frequency || '—'}</Text>
+              <Text style={[styles.tableCell, styles.col4]}>{med.duration || '—'}</Text>
             </View>
           ))}
         </View>
@@ -105,10 +108,48 @@ function PrescriptionDocument({ prescription }: { prescription: any }) {
 
 export default function PrescriptionPDF({ prescription }: { prescription: any }) {
   const [mounted, setMounted] = useState(false)
+  const [patientName, setPatientName] = useState<string>('Patient')
+  const supabase = createClient()
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+
+    const resolvePatientName = async () => {
+      // 1. Try from prescription object
+      if (prescription?.patients?.users?.full_name) {
+        setPatientName(prescription.patients.users.full_name)
+        return
+      }
+      if (prescription?.patient_name) {
+        setPatientName(prescription.patient_name)
+        return
+      }
+
+      // 2. Try fetching from users table via patient_id
+      if (prescription?.patient_id) {
+        const { data: user } = await supabase.from('users').select('full_name').eq('id', prescription.patient_id).single()
+        if (user?.full_name) {
+          setPatientName(user.full_name)
+          return
+        }
+      }
+
+      // 3. Fallback to logged-in user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.user_metadata?.full_name) {
+        setPatientName(user.user_metadata.full_name)
+      } else {
+        const { data: u } = await supabase.from('users').select('full_name').eq('id', user?.id).single()
+        if (u?.full_name) setPatientName(u.full_name)
+      }
+    }
+
+    resolvePatientName()
+  }, [prescription])
+
+  const handlePrint = () => {
+    window.print()
+  }
 
   if (!mounted) {
     return (
@@ -119,12 +160,16 @@ export default function PrescriptionPDF({ prescription }: { prescription: any })
   }
 
   const medicines: any[] = prescription.medicines || []
-  const date = new Date(prescription.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+  const date = prescription.created_at
+    ? new Date(prescription.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+    : new Date().toLocaleDateString()
+
+  const doctorName = prescription.doctors?.users?.full_name ? `Dr. ${prescription.doctors.users.full_name}` : 'Dr. Attending Physician'
 
   return (
     <div className="space-y-4">
-      {/* HTML Preview */}
-      <div className="border rounded-lg p-6 bg-white text-slate-900 font-sans text-sm shadow-sm">
+      {/* HTML Preview (Printable) */}
+      <div id="printable-prescription" className="border rounded-lg p-6 bg-white text-slate-900 font-sans text-sm shadow-sm">
         {/* Header */}
         <div className="border-b-2 border-blue-600 pb-4 mb-5 flex justify-between items-start">
           <div>
@@ -133,7 +178,7 @@ export default function PrescriptionPDF({ prescription }: { prescription: any })
             <p className="text-slate-500 text-xs">Tel: +91 98765 43210 | care@hmspro.com</p>
           </div>
           <div className="text-right">
-            <p className="font-bold">Dr. Attending Physician</p>
+            <p className="font-bold">{doctorName}</p>
             <p className="text-slate-500 text-xs">MBBS, MD | Reg. No: 12345</p>
             <p className="text-slate-500 text-xs">General Medicine</p>
           </div>
@@ -142,8 +187,8 @@ export default function PrescriptionPDF({ prescription }: { prescription: any })
         {/* Patient Info */}
         <div className="mb-4">
           <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Patient Information</p>
-          <div className="flex gap-8">
-            <div><span className="text-slate-500">Patient: </span><strong>{prescription.patients?.users?.full_name ?? 'N/A'}</strong></div>
+          <div className="flex flex-wrap gap-8 text-xs">
+            <div><span className="text-slate-500">Patient: </span><strong>{patientName}</strong></div>
             <div><span className="text-slate-500">Date: </span><strong>{date}</strong></div>
             {prescription.diagnosis && <div><span className="text-slate-500">Diagnosis: </span><strong>{prescription.diagnosis}</strong></div>}
           </div>
@@ -162,9 +207,13 @@ export default function PrescriptionPDF({ prescription }: { prescription: any })
               </tr>
             </thead>
             <tbody>
-              {medicines.map((med, i) => (
+              {medicines.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-3 text-center text-slate-400">No medicines prescribed.</td>
+                </tr>
+              ) : medicines.map((med, i) => (
                 <tr key={i} className="border-b border-slate-100">
-                  <td className="p-2">{med.name}</td>
+                  <td className="p-2 font-medium">{med.name}</td>
                   <td className="p-2">{med.dosage}</td>
                   <td className="p-2">{med.frequency}</td>
                   <td className="p-2">{med.duration}</td>
@@ -186,25 +235,35 @@ export default function PrescriptionPDF({ prescription }: { prescription: any })
         <div className="flex justify-end mt-8 mb-4">
           <div className="text-center border-t border-slate-800 pt-1 w-40 text-xs">Doctor's Signature</div>
         </div>
-        <p className="text-center text-xs text-slate-400 border-t pt-3 mt-2">
-          ⚠️ This is a digital prescription by HMS Pro. Not a substitute for professional medical advice.
+        <p className="text-center text-[10px] text-slate-400 border-t pt-3 mt-2">
+          This digital prescription is generated by HMS Pro Hospital Management System.
         </p>
       </div>
 
-      {/* Download Button */}
-      <PDFDownloadLink
-        document={<PrescriptionDocument prescription={prescription} />}
-        fileName={`prescription-${prescription.id?.slice(0, 8) ?? 'hms'}.pdf`}
-      >
-        {({ loading }) => (
-          <button
-            disabled={loading}
-            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold rounded-lg transition-colors text-sm"
-          >
-            {loading ? 'Generating PDF...' : '⬇ Download Prescription PDF'}
-          </button>
-        )}
-      </PDFDownloadLink>
+      {/* Action Buttons: PDF Download Link + Browser Print */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <PDFDownloadLink
+          document={<PrescriptionDocument prescription={prescription} patientName={patientName} />}
+          fileName={`prescription-${prescription.id?.slice(0, 8) ?? 'hms'}.pdf`}
+          className="flex-1"
+        >
+          {({ loading }) => (
+            <button
+              disabled={loading}
+              className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+            >
+              <span>📄</span> {loading ? 'Generating PDF...' : 'Download Prescription PDF'}
+            </button>
+          )}
+        </PDFDownloadLink>
+
+        <button
+          onClick={handlePrint}
+          className="py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+        >
+          <span>🖨️</span> Print / Save PDF
+        </button>
+      </div>
     </div>
   )
 }
