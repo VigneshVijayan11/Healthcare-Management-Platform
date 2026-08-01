@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,29 +11,48 @@ export default function AIHealthAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "👋 Hi! I'm your AI Health Assistant. Tell me your symptoms, and I'll help you understand possible causes, precautions, and when to see a doctor.\n\n⚠️ **Disclaimer:** I am not a substitute for professional medical advice, diagnosis, or treatment. Always consult a licensed doctor.",
+      content: "👋 Hi! I'm your AI Health Assistant. Describe your symptoms in detail and I'll give you specific, tailored guidance.\n\n⚠️ **Disclaimer:** I am not a substitute for professional medical advice, diagnosis, or treatment. Always consult a licensed doctor.",
     },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, loading])
 
   const sendMessage = async () => {
-    if (!input.trim()) return
+    if (!input.trim() || loading) return
     const userMessage = input.trim()
     setInput('')
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }])
+
+    // Optimistically add user message
+    const updatedMessages: Message[] = [...messages, { role: 'user', content: userMessage }]
+    setMessages(updatedMessages)
     setLoading(true)
 
     try {
       const res = await fetch('/api/ai-health', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({
+          message: userMessage,
+          // Send the full conversation history (excluding the greeting) for context
+          history: updatedMessages.slice(1),
+        }),
       })
       const data = await res.json()
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply || data.error || 'Sorry, I encountered an error. Please try again.' }])
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.reply || data.error || 'Sorry, I encountered an error. Please try again.',
+      }])
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again later.' }])
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered a network error. Please try again later.',
+      }])
     }
 
     setLoading(false)
@@ -76,6 +95,7 @@ export default function AIHealthAssistant() {
               </div>
             </div>
           )}
+          <div ref={bottomRef} />
         </CardContent>
         <div className="p-4 border-t flex gap-2">
           <Input
